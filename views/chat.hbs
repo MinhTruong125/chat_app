@@ -1,0 +1,32 @@
+<div class="container mt-4">
+  <div class="row">
+    <!-- Cột trái: Danh sách bạn bè -->
+    <div class="col-md-4">
+      <h5 class="mb-3">Danh sách bạn bè</h5>
+      <ul class="list-group" id="userList"></ul>
+    </div>
+
+    <!-- Cột phải: Lời mời + Khung chat -->
+    <div class="col-md-8">
+      <!-- Lời mời kết bạn -->
+      <h5 class="mb-3">Lời mời kết bạn</h5>
+      <div id="friendRequests" class="d-flex flex-column gap-2 mb-4"></div>
+
+      <!-- Khung chat -->
+      <div class="card">
+        <div class="card-header" id="chatHeader">Chọn người để chat</div>
+        <div class="card-body" id="chatBox" style="position: relative;"></div>
+        <div class="card-footer d-flex">
+          <input type="text" id="messageInput" class="form-control me-2" placeholder="Nhập tin nhắn...">
+          <button id="sendBtn" class="btn btn-primary">Gửi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const currentUser = {{{userJSON}}};
+</script>
+
+<script src="/js/friend-socket.js"></script>

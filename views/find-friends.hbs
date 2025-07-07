@@ -1,0 +1,15 @@
+<div class="container py-4">
+  <h2 class="mb-4">Tìm bạn bè</h2>
+  <div id="friendRequests" class="mb-4"></div>
+  <div class="mb-3">
+    <input id="searchInput" type="text" class="form-control" placeholder="Nhập tên cần tìm...">
+  </div>
+  <div class="list-group" id="userList"></div>
+</div>
+
+<script>
+  const currentUser = {{{userJSON}}};
+</script>
+<script src="/socket.io/socket.io.js"></script>
+{{!-- <script src="/js/friend.js"></script> --}}
+<script src="/js/friend-socket.js"></script>
