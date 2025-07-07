@@ -23,7 +23,7 @@ exports.sendRequest = async (req, res) => {
   await receiver.save();
   await sender.save();
 
-  // 👉 Emit socket.io realtime
+  // Emit socket.io realtime
   const io = req.app.get('io');
   const toSocketId = io.userSocketMap?.get(receiver._id.toString());
   if (toSocketId) {

@@ -43,7 +43,7 @@ module.exports = (io) => {
       if (toSocketId) {
         io.to(toSocketId).emit("typing", {
           from: socket.user.id,
-          fromName: socket.user.username // ✅ gửi kèm tên
+          fromName: socket.user.username 
         });
       }
     });

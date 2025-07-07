@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (socket.listeners("private_message").length === 0) {
     console.log("Gắn listener private_message");
     socket.on("private_message", (data) => {
-      console.log("📨 Nhận tin nhắn:", data);
+      console.log("Nhận tin nhắn:", data);
 
       const isMine = data.from === selectedUser?._id;
       const isChatting = selectedUser && selectedUser._id === data.from;

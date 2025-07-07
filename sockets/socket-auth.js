@@ -11,10 +11,10 @@ function setupSocketAuth(io) {
     jwt.verify(token, secret, (err, user) => {
       if (err) return next(new Error("Invalid token"));
 
-      // ✅ Gắn cả id và username vào socket.user
+      // Gắn cả id và username vào socket.user
       socket.user = {
         id: user.id,
-        username: user.username,  // Đảm bảo payload JWT có trường này
+        username: user.username,  
       };
 
       userSocketMap.set(user.id, socket.id);

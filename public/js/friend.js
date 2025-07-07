@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const friendReqBox = document.getElementById("friendRequests");
   const userList = document.getElementById("userList");
 
-  console.log("✅ friend.js is running");
+  console.log("friend.js is running");
 
   function getCookie(name) {
     return document.cookie
@@ -48,13 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const addBtn = document.createElement("button");
             addBtn.className = "btn btn-sm btn-outline-primary";
             addBtn.textContent = "Kết bạn";
-            console.log("🔘 Đã tạo nút Kết bạn cho", user.username);
+            console.log("Đã tạo nút Kết bạn cho", user.username);
             addBtn.onclick = (e) => {
               e.stopPropagation();
               fetch(`/users/${user._id}/request`, {
                 method: "POST"
               }).then(() => {
-                console.log("📤 emitting friend_request_notification to", user._id);
+                console.log("emitting friend_request_notification to", user._id);
                 socket.emit("friend_request_notification", { to: user._id });
                 alert("Đã gửi lời mời kết bạn!");
                 addBtn.disabled = true;
