@@ -1,0 +1,12 @@
+<div class="container mt-4">
+  <h3 class="mb-3">Tạo bài viết mới</h3>
+  <form action="/posts" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <textarea name="content" class="form-control" rows="3" placeholder="Bạn đang nghĩ gì?"></textarea>
+    </div>
+    <div class="mb-3">
+      <input type="file" name="image" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Đăng bài</button>
+  </form>
+</div>

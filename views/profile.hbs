@@ -1,0 +1,93 @@
+<div class="container py-4">
+  <div class="text-center">
+    <img src="{{user.avatarUrl}}" class="rounded-circle mb-3" width="100" height="100">
+    <h4>{{user.username}}</h4>
+    <p class="text-muted">{{user.email}}</p>
+
+    <!-- Form upload avatar -->
+    <form action="/users/profile/avatar" method="POST" enctype="multipart/form-data" class="d-inline-block mt-2">
+      <label class="btn btn-outline-primary">
+        <i class="bi bi-camera"></i> Đổi ảnh đại diện
+        <input type="file" name="avatar" class="d-none" onchange="this.form.submit()">
+      </label>
+    </form>
+  </div>
+
+  <hr>
+
+  <h5>Bài viết của bạn</h5>
+  {{#each posts}}
+    <div class="card mb-3 shadow-sm" data-post-id="{{this._id}}">
+    <div class="card-body">
+      <!-- Header -->
+      <div class="position-relative">
+          {{#ifCond this.author._id ../user._id null}}
+            <form method="POST" action="/posts/{{this._id}}/delete"
+                  class="position-absolute top-0 end-0 m-2"
+                  onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này?')">
+              <button type="submit" class="btn btn-sm btn-light border shadow-sm rounded-circle">
+                <i class="bi bi-x-lg text-danger"></i>
+              </button>
+            </form>
+          {{/ifCond}}
+        </div>
+      <div class="d-flex align-items-center mb-2">
+        <a href="/users/{{this.author._id}}"  class="user-link" data-user-id="{{author._id}}">
+          <img src="{{this.author.avatarUrl}}" alt="avatar" class="rounded-circle me-2" width="40" height="40">
+        </a>
+        <div>
+          <a href="/users/{{this.author._id}}"  class="user-link text-dark text-decoration-none" data-user-id="{{author._id}}">
+            <div class="fw-bold">{{this.author.username}}</div>
+          </a>
+          <small class="text-muted">{{formatTimeAgo this.createdAt}}</small>
+        </div>
+      </div>
+
+      <!-- Content-->
+      <p class="mb-2" style="white-space: pre-wrap;">{{this.content}}</p>
+
+      <!-- Image -->
+      {{#if this.imageUrl}}
+        <img src="{{this.imageUrl}}" class="img-fluid rounded d-block mx-auto my-2" style="max-height: 400px;">
+      {{/if}}
+
+      <!-- Reactions -->
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        {{#if (includes this.likes ../user._id)}}
+          <button class="btn btn-sm btn-primary text-white btn-like">
+        {{else}}
+          <button class="btn btn-sm btn-outline-primary btn-like">
+        {{/if}}
+            <i class="bi bi-hand-thumbs-up me-1"></i>
+            <span class="like-count">{{this.likes.length}}</span> Thích
+          </button>
+      </div>
+
+      <!-- Comments -->
+      <ul class="mt-3 comment-list list-unstyled">
+        {{#each this.comments}}
+          <li data-comment-id="{{this._id}}" class="mt-1">
+            <a href="/users/{{this.author._id}}" class="user-link" data-user-id="{{author._id}}">
+              <img src="{{this.author.avatarUrl}}" alt="avatar" class="rounded-circle me-2" width="30" height="30">
+            </a>
+            <a href="/users/{{this.author._id}}"  class="user-link text-dark text-decoration-none" data-user-id="{{author._id}}">
+              <strong> {{this.author.username}}:</strong> {{this.content}}
+            </a>
+            {{#ifCond ../author._id ../../user._id this.author._id}} 
+              <button class="btn btn-sm btn-link text-danger p-0 ms-2 btn-delete-comment"
+                      data-comment-id="{{this._id}}" data-post-id="{{../_id}}">X</button>
+            {{/ifCond}}
+          </li>
+        {{/each}}
+      </ul>
+
+      <!-- Form comments -->
+      <form class="mt-2 comment-form d-flex">
+        <input type="text" class="form-control me-2 comment-input" placeholder="Viết bình luận...">
+        <button type="submit" class="btn btn-primary btn-sm">Gửi</button>
+      </form>
+    </div>
+  </div>
+
+  {{/each}}
+</div>

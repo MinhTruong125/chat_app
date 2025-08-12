@@ -1,37 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="app">
-            {{> header}}
+    {{#if user}}    
+      {{> header}}
+    {{/if}}
 
-            <div class="container">
-                {{{body}}}
-            </div>
+    <div class="container">
+      {{{body}}}
+    </div>
+  </div>
 
-           
-        </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/vi.js"></script>
   <script>
+    dayjs.extend(dayjs_plugin_relativeTime);
+    dayjs.locale('vi');
+
+    // Lấy token từ cookie
     function getCookie(name) {
       return document.cookie
         .split('; ')
         .find(row => row.startsWith(name + '='))?.split('=')[1];
     }
 
+    // Khởi tạo window.currentUser
+    const rawUser = {{{userJSON}}};
+    window.currentUser = {
+      _id: rawUser._id,
+      username: rawUser.username,
+      avatarUrl: rawUser.avatarUrl
+    };
+    console.log("[Client] window.currentUser:", window.currentUser);
+    if (!window.currentUser._id) {
+      console.error("[Client] window.currentUser.id is undefined");
+    }
+
+    // Khởi tạo Socket.IO
     window.socket = io({
-      auth: { token: getCookie("token") }
+      auth: {
+        userId: window.currentUser._id,
+        username: window.currentUser.username,
+        token: getCookie("token")
+      }
+      
     });
+    console.log("[Client] Socket.IO initialized with userId:", window.currentUser._id);
+    console.log("TOKEN", getCookie("token"))
   </script>
 
-  <script src="/js/{{script}}"></script>
-  
+  {{#if script}}
+    <script src="/js/{{script}}"></script>
+  {{/if}}
+  <script src="/js/friend-socket.js"></script>
+  <script src="/js/popup-chat.js"></script>
+  <script src="/js/search-user.js"></script>
+  <script src="/js/feeds.js"></script>
 </body>
 </html>
-

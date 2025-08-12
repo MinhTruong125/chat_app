@@ -1,14 +1,97 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="/chat">ChatApp</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="/chat">Chat</a></li>
-        <li class="nav-item"><a class="nav-link" href="/find-friends">Tìm bạn</a></li>
-      </ul>
-      <form action="/logout" method="POST">
-        <button class="btn btn-outline-danger btn-sm">Đăng xuất</button>
-      </form>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-4 sticky-top shadow-sm">
+  <a class="navbar-brand fw-bold" href="/posts/feeds">MySocial</a>
+
+  <form id="globalUserSearch" class="position-relative mx-auto" autocomplete="off" style="width: 300px;">
+    <input id="searchInput" class="form-control me-2" type="search" placeholder="Tìm bạn bè..." />
+    <ul id="searchSuggestions" class="list-group position-absolute w-100 mt-1 shadow d-none" style="z-index: 999;"></ul>
+  </form>
+
+  <ul class="navbar-nav ms-auto d-flex align-items-center">
+    <li class="nav-item me-3 position-relative">
+      <a href="javascript:void(0)" class="nav-link position-relative" id="toggleChatPopup">
+        <i class="bi bi-chat-dots fs-4"></i>
+        <span id="globalUnreadBadge"
+              class="position-absolute bg-danger text-white rounded-circle d-none d-flex align-items-center justify-content-center"
+              style="top: -4px; right: -4px; width: 20px; height: 20px; font-size: 12px;">
+          0
+        </span>
+      </a>
+      
+      <!-- Danh sách bạn bè dạng dropdown -->
+      <div id="chatDropdown" class="dropdown-menu p-2 shadow" style="width: 300px; max-height: 400px; overflow-y: auto; display: none; position: absolute; right: 0;">
+        <h6 class="dropdown-header">Bạn bè</h6>
+        <ul id="popupFriendList" class="list-group list-group-flush">
+          <!-- Danh sách bạn bè sẽ được thêm ở đây bằng JS -->
+        </ul>
+      </div>
+    </li>
+
+    <li class="nav-item me-3 position-relative">
+    <a href="javascript:void(0)" class="nav-link position-relative" id="toggleFriendRequests">
+      <i class="bi bi-person-plus fs-4"></i>
+      <span id="friendRequestBadge"
+            class="position-absolute bg-danger text-white rounded-circle d-none d-flex align-items-center justify-content-center"
+            style="top: -4px; right: -4px; width: 20px; height: 20px; font-size: 12px;">
+        0
+      </span>
+    </a>
+
+    <!-- Dropdown lời mời -->
+    <div id="friendRequestDropdown" class="dropdown-menu p-2 shadow"
+        style="width: 310px; max-height: 400px; overflow-y: auto; display: none; position: absolute; right: 0;">
+      <h6 class="dropdown-header">Lời mời kết bạn</h6>
+      <div id="friendRequestList" class="d-flex flex-column gap-2"></div>
     </div>
-  </div>
+  </li>
+
+    <li class="nav-item me-3 position-relative">
+      <a href="javascript:void(0)" class="nav-link position-relative" id="toggleNotif">
+        <i class="bi bi-bell fs-4"></i>
+        <span id="notifBadge"
+              class="position-absolute bg-danger text-white rounded-circle d-none d-flex align-items-center justify-content-center"
+              style="top: -4px; right: -4px; width: 20px; height: 20px; font-size: 12px;">
+        </span>
+      </a>
+
+      <!-- Dropdown thông báo -->
+      <div id="notifDropdown" class="dropdown-menu p-2 shadow"
+          style="width: 310px; max-height: 400px; overflow-y: auto; display: none; position: absolute; right: 0;">
+        <h6 class="dropdown-header">Thông báo</h6>
+        <div id="notifList" class="d-flex flex-column gap-2">
+          {{#each notifications}}
+            <div class="border-bottom pb-2">
+              <a href="/posts/feeds#post_{{this.postId}}" class="text-decoration-none">
+                {{#ifCond this.type "like"}}
+                  <small><strong>{{this.from}}</strong> đã thích bài viết của bạn - <span class="text-muted">{{formatTimeAgo this.createdAt}}</span></small>
+                {{else}}
+                  <small><strong>{{this.from}}</strong> đã bình luận: "{{this.content}}" - <span class="text-muted">{{formatTimeAgo this.createdAt}}</span></small>
+                {{/ifCond}}
+              </a>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </li>
+    
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <img src="{{#if user.avatarUrl}}{{user.avatarUrl}}{{else}}/images/default-avatar.png{{/if}}" alt="avatar" class="rounded-circle" width="32" height="32">
+        {{user.username}}
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="/users/profile">Trang cá nhân</a></li>
+        <li>
+          <form action="/logout" method="POST" style="display: inline;">
+            <button type="submit" class="dropdown-item">Đăng xuất</button>
+          </form>
+        </li>
+      </ul>
+    </li>
+  </ul>
 </nav>
+
+<!-- Vùng popup chứa các khung chat -->
+<div id="popupChatContainer" class="position-fixed bottom-0 end-0 p-3 d-flex flex-row-reverse align-items-end gap-2 flex-wrap-reverse" style="z-index: 1050;">
+  <!-- JS sẽ append các popup chat ở đây -->
+</div>

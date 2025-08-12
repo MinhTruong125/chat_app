@@ -1,10 +1,14 @@
+const Post = require('../models/post.model');
 const User = require('../models/user.model');
 const redis = require('../config/redis');
+const { uploadToMinIO } = require('../config/minio');
+const Notification = require('../models/notification.model');
+
 
 exports.searchUsers = async (req, res) => {
   const { q } = req.query;
   const query = q ? { username: { $regex: q, $options: 'i' } } : {};
-  const users = await User.find(query, '_id username friends pendingRequests sentRequests');
+  const users = await User.find(query, '_id username avatarUrl friends pendingRequests sentRequests');
   res.json(users);
 };
 
@@ -99,7 +103,7 @@ exports.getChatData = async (req, res) => {
   const currentUser = await User.findById(req.user.id).populate('friends', '_id username');
 
   const friends = await Promise.all(currentUser.friends.map(async (friend) => {
-    const lastKey = `lastmsg:${req.user.id}:${friend._id}`; // chú ý chiều
+    const lastKey = `lastmsg:${req.user.id}:${friend._id}`; 
     const unreadKey = `unread:${req.user.id}:${friend._id}`;
 
     const lastMessageRaw = await redis.get(lastKey);
@@ -129,3 +133,74 @@ exports.getChatData = async (req, res) => {
   res.json(friends);
 };
 
+exports.getProfile = async (req, res) => {
+  const user = await User.findById(req.user.id);
+  const posts = await Post.find({ author: req.user.id })
+        .populate([
+          { path: 'author', select: 'username avatarUrl'},
+          { path: 'comments.author', select: 'username avatarUrl' }
+        ])
+        .sort({ createdAt: -1 });
+  
+  const notifications = await Notification.find({ userId: req.user.id })
+        .sort({ createdAt: -1 })
+        .limit(50);
+
+  res.render('profile', {
+    title: 'Trang cá nhân',
+    user,
+    userJSON: JSON.stringify(req.user),
+    notifications,
+    posts
+  });
+};
+
+exports.updateAvatar = async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (req.file) {
+    const url = await uploadToMinIO(req.file);
+    user.avatarUrl = url;
+    await user.save();
+  }
+  res.redirect('/users/profile');
+};
+
+exports.viewPublicProfile = async (req, res) => {
+  try {
+    const currentUser = req.user; 
+    const targetUser = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).send("User not found");
+
+    const posts = await Post.find({ author: user._id })
+      .populate([
+          { path: 'author', select: 'username avatarUrl' },
+          { path: 'comments.author', select: 'username avatarUrl' }
+        ])
+      .sort({ createdAt: -1 });
+
+      const isFriend = targetUser.friends.includes(currentUser._id);
+      const isPending = targetUser.pendingRequests.includes(currentUser._id);
+      const isOwnProfile = targetUser._id.equals(currentUser._id);
+
+    const notifications = await Notification.find({ userId: req.user.id })
+          .sort({ createdAt: -1 })
+          .limit(50);
+
+    res.render('public-profile', {
+      title: `Trang của ${user.username}`,
+      profileUser: user, 
+      posts,
+      targetUser,                
+      user: currentUser,
+      userJSON: JSON.stringify(req.user || {}),
+      isFriend,
+      isPending,
+      isOwnProfile,
+      notifications
+    });
+  } catch (err) {
+    console.error("Lỗi load public profile:", err);
+    res.status(500).send("Lỗi server");
+  }
+};

@@ -27,7 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         chatBox.innerHTML = "";
-        data.forEach(msg => renderMessage(msg.content, msg.from === currentUser.id));
+        data.forEach(msg => {
+          const fromId = typeof msg.from === "object" ? msg.from._id || msg.from.toString() : msg.from;
+          renderMessage(msg.content, fromId === currentUser.id);
+        });
       });
   }
 
@@ -175,7 +178,99 @@ document.addEventListener("DOMContentLoaded", () => {
         typingElem?.remove();
       }
     });
+
+  let popupSelectedUser = null;
+
+  // Bật/tắt popup
+  document.getElementById("toggleChatPopup").onclick = () => {
+    const popup = document.getElementById("chatPopup");
+    popup.style.display = popup.style.display === "none" ? "block" : "none";
+  };
+
+  // Đóng popup
+  document.getElementById("closeChatPopup").onclick = () => {
+    document.getElementById("chatPopup").style.display = "none";
+    popupSelectedUser = null;
+    document.getElementById("popupMessages").innerHTML = "";
+  };
+
+  // Tải danh sách bạn bè vào popup
+  function loadPopupFriends() {
+    fetch('/users/chat-data')
+      .then(res => res.json())
+      .then(users => {
+        const select = document.getElementById("popupFriendSelect");
+        select.innerHTML = `<option disabled selected>Chọn bạn để chat</option>`;
+        users.forEach(user => {
+          const opt = document.createElement("option");
+          opt.value = user._id;
+          opt.textContent = user.username;
+          select.appendChild(opt);
+        });
+      });
+  }
+
+  // Khi chọn bạn trong popup
+  document.getElementById("popupFriendSelect").addEventListener("change", (e) => {
+    const userId = e.target.value;
+    popupSelectedUser = { _id: userId, username: e.target.selectedOptions[0].text };
+    document.getElementById("popupMessages").innerHTML = "";
+
+    // Tải tin nhắn giữa 2 người
+    fetch(`/messages/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(msg => renderPopupMessage(msg.content, msg.from === currentUser.id));
+      });
+
+    // Đánh dấu đã đọc
+    fetch(`/messages/${userId}/mark-read`, { method: "POST" });
+  });
+
+  // Gửi tin nhắn từ popup
+  document.getElementById("popupSendBtn").onclick = () => {
+    const input = document.getElementById("popupInput");
+    const text = input.value.trim();
+    if (text && popupSelectedUser) {
+      renderPopupMessage(text, true);
+      socket.emit("private_message", { to: popupSelectedUser._id, content: text });
+      input.value = "";
+    }
+  };
+
+  // Hiển thị tin nhắn trong popup
+  function renderPopupMessage(content, isMine) {
+  const div = document.createElement("div");
+  div.className = `d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = `message ${isMine ? "right" : "left"}`; // dùng class giống feed
+  bubble.textContent = content;
+
+  div.appendChild(bubble);
+  popupMessages.appendChild(div);
+  popupMessages.scrollTop = popupMessages.scrollHeight;
+}
+
+  // Nhận tin nhắn và đồng bộ giữa /chat và popup
+  socket.on("private_message", (data) => {
+    if (popupSelectedUser && data.from === popupSelectedUser._id && document.getElementById("chatPopup").style.display !== "none") {
+      renderPopupMessage(data.content, false);
+      fetch(`/messages/${data.from}/mark-read`, { method: "POST" });
+    }
+
+    // Nếu đang trong trang /chat → gọi renderMessage sẵn có
+    if (typeof renderMessage === 'function') {
+      if (selectedUser && data.from === selectedUser._id) {
+        renderMessage(data.content, false);
+      }
+    }
+  });
+  loadPopupFriends();
+
 }
 
   loadUsers();
 });
+
+

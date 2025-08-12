@@ -41,16 +41,18 @@ h2, h3 {
   animation: fadeIn 0.2s ease-in;
 }
 
-.message.left {
-  background-color: #f1f1f1;
-  align-self: flex-start;
-  text-align: left;
+.message.right {
+  background-color: #dcf8c6;
+  padding: 8px 12px;
+  border-radius: 16px;
+  max-width: 75%;
 }
 
-.message.right {
-  background-color: #d1e7dd;
-  align-self: flex-end;
-  text-align: right;
+.message.left {
+  background-color: #f1f0f0;
+  padding: 8px 12px;
+  border-radius: 16px;
+  max-width: 75%;
 }
 
 .card-footer {
@@ -109,6 +111,16 @@ h2, h3 {
   animation-delay: 0.4s;
 }
 
+.chat-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  z-index: 9999;
+} 
+
+
+
 @keyframes blink {
   0% { opacity: 0.3; }
   50% { opacity: 1; }
@@ -124,4 +136,10 @@ h2, h3 {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typingDot {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
 }
