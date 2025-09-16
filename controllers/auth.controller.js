@@ -26,9 +26,9 @@ exports.postLogin = async (req, res) => {
   });
 
   
-  console.log('Generated JWT token:', token); // <-- Thêm dòng này
+  console.log('Generated JWT token:', token);
 
-  // ✅ LƯU TOKEN VÀO REDIS
+  // LƯU TOKEN VÀO REDIS
   await redis.set(`token:${token}`, user._id.toString(), {
     EX: 60 * 60 // 1 giờ
   });  

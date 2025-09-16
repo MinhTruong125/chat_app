@@ -44,29 +44,63 @@ function createPopup(user) {
     popup.remove();
   };
 
-  function renderMessage(content, isMine) {
+
+  // Infinite scroll state
+  let oldestMessageId = null;
+  let loadingOldMessages = false;
+
+  function renderMessage(content, isMine, prepend = false) {
     const wrapper = document.createElement("div");
     wrapper.className = `d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`;
     const bubble = document.createElement("div");
-    bubble.className = `message ${isMine ? "right" : "left"}`;
+    bubble.className = `message ${isMine ? "right" : "left"} new`;
     bubble.textContent = content;
     wrapper.appendChild(bubble);
-    messages.appendChild(wrapper);
-    messages.scrollTop = messages.scrollHeight;
+    if (prepend) {
+      messages.prepend(wrapper);
+    } else {
+      messages.appendChild(wrapper);
+      messages.scrollTop = messages.scrollHeight;
+    }
+    setTimeout(() => bubble.classList.remove('new'), 500);
   }
 
-  function loadMessages() {
-    fetch(`/messages/${user._id}`)
+  function loadMessages(initial = true) {
+    let url = `/messages/${user._id}?limit=10`;
+    if (!initial && oldestMessageId) {
+      url += `&before=${oldestMessageId}`;
+    }
+    showLoadingSpinner();
+    const prevHeight = messages.scrollHeight;
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        messages.innerHTML = "";
-        data.forEach(msg => {
-          const fromId = typeof msg.from === "object" ? msg.from._id || msg.from.toString() : msg.from;
-          const isMine = fromId === currentUser._id;
-          renderMessage(msg.content, isMine);
-        });
+        hideLoadingSpinner();
+        if (initial) messages.innerHTML = "";
+        if (data.length > 0) {
+          oldestMessageId = data[0]._id;
+          data.forEach(msg => {
+            const fromId = typeof msg.from === "object" ? msg.from._id || msg.from.toString() : msg.from;
+            const isMine = fromId === currentUser._id;
+            renderMessage(msg.content, isMine, !initial);
+          });
+          if (initial) {
+            messages.scrollTop = messages.scrollHeight;
+          } else {
+            messages.scrollTop = messages.scrollHeight - prevHeight;
+          }
+        }
+        loadingOldMessages = false;
       });
   }
+
+  messages.addEventListener("scroll", () => {
+    if (messages.scrollTop === 0 && !loadingOldMessages) {
+      loadingOldMessages = true;
+      showLoadingSpinner();
+      loadMessages(false);
+    }
+  });
 
   function sendMessage() {
     const text = input.value.trim();
@@ -77,6 +111,25 @@ function createPopup(user) {
 
       socket.emit("stop_typing", { to: user._id });
       clearTimeout(input._typingTimeout);
+    }
+  }
+
+  // Spinner hiệu ứng loading ở giữa popup, mờ dần khi tải xong
+  function showLoadingSpinner() {
+    if (!popup.querySelector('.loading-spinner')) {
+      const spinner = document.createElement('div');
+      spinner.className = 'loading-spinner text-center py-2';
+      spinner.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div> Đang tải...';
+      popup.appendChild(spinner);
+    }
+  }
+
+  function hideLoadingSpinner() {
+    const spinner = popup.querySelector('.loading-spinner');
+    if (spinner) {
+      spinner.style.transition = 'opacity 0.4s';
+      spinner.style.opacity = '0';
+      setTimeout(() => spinner.remove(), 400);
     }
   }
 
@@ -113,7 +166,7 @@ function createPopup(user) {
   }
 }
 
-function loadPopupFriendList() {
+function loadPopupFriendList() {  
   fetch("/users/chat-data")
     .then(res => res.json())
     .then(users => {
@@ -150,6 +203,8 @@ function loadPopupFriendList() {
       updateGlobalBadge();
     });
 }
+
+
 
 document.getElementById("toggleChatPopup").addEventListener("click", () => {
   const dropdown = document.getElementById("chatDropdown");

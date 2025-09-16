@@ -2,13 +2,20 @@ const redis = require('../config/redis');
 const Message = require('../models/message.model');
 
 exports.getMessages = async (req, res) => {
-  const messages = await Message.find({
+  const { limit = 10, before } = req.query;
+  const query = {
     $or: [
       { from: req.user.id, to: req.params.id },
       { from: req.params.id, to: req.user.id }
     ]
-  });
-  res.json(messages);
+  };
+  if (before) {
+    query._id = { $lt: before }; // Giả sử _id tăng dần theo thời gian
+  }
+  const messages = await Message.find(query)
+    .sort({ _id: -1 }) // Mới nhất trước
+    .limit(parseInt(limit));
+  res.json(messages.reverse()); // Đảo lại để cũ nhất lên đầu
 };
 
 exports.markAsRead = async (req, res) => {

@@ -14,7 +14,7 @@ passport.use(new GoogleStrategy({
     if (!user) {
       user = new User({
         googleId: profile.id,
-        username: profile.displayName,
+        username: profile.displayName || profile.emails[0].value.split('@')[0],
         email: profile.emails[0].value,
         avatarUrl: profile.photos[0].value,
         passwordHash: 'google_auth',

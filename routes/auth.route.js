@@ -21,7 +21,7 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', }),
   async(req, res) => {
     // Tạo token JWT
-    const token = jwt.sign({ id: req.user._id }, secret, { expiresIn: "7d" });  
+    const token = jwt.sign({ id: req.user._id, username: req.user.username }, secret, { expiresIn: "7d" });  
     console.log('Token', token)
 
     // LƯU TOKEN VÀO REDIS
@@ -31,7 +31,6 @@ router.get('/auth/google/callback',
     
     // Gửi token vào cookie
     res.cookie("token", token,   {
-      
       secure: false, // Đổi thành true nếu dùng HTTPS
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
     }).redirect('/posts/feeds');

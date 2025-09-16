@@ -1,5 +1,6 @@
 const Message = require('../models/message.model');
 const redis = require('../config/redis');
+const { TransitionDefaultMinimumObjectSize } = require('@aws-sdk/client-s3');
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
@@ -14,7 +15,7 @@ module.exports = (io) => {
       await redis.incr(`unread:${to}:${from}`);
 
       // Lưu tin nhắn cuối theo cả 2 chiều
-      const payload = JSON.stringify({
+      const payload = JSON.stringify({ 
         content,
         from,
         to,
@@ -22,7 +23,7 @@ module.exports = (io) => {
       });
 
       await redis.set(`lastmsg:${to}:${from}`, payload);
-      await redis.set(`lastmsg:${from}:${to}`, payload);
+      await redis.set(`lastmsg:${from}:${to}`, payload)
 
       const toSocketId = io.userSocketMap.get(to);
       if (toSocketId) {

@@ -18,11 +18,11 @@ function setupSocketAuth(io) {
 
       socket.user = {
         id: decoded.id,
-        username: decoded.username
+        username: decoded.username || userInDb?.username
       };
 
-      userSocketMap.set(decoded.id, socket.id);
-      next();
+      userSocketMap.set(decoded.id, socket.id, );
+      next(); 
     } catch (err) {
       next(new Error("Invalid token"));
     }
